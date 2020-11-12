@@ -1,6 +1,6 @@
 # Tempo prediction using CNN
 
-This project is a side effect of [another project](OnsetCNN).
+This project is a side effect of [another project](https://github.com/FormylMethionine/OnsetCNN).
 The goal here is to predict the tempo in beats per minute of a song using
 short term Fourier analysis and CNN.
 
