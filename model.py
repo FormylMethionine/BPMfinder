@@ -57,29 +57,27 @@ class OnsetModel(tf.Module):
         index = [line[:-1] for line in open(f"{train_dir}/index.txt")]
         total = len(index)
         for epoch in range(epochs):
-            k = 0
             for i in range(len(index)):
                 name = index[i]
                 x = pkl.load(open(f"{train_dir}/{name}.pkl", "rb"))
-                y = json.load(open(f"{train_dir}/{name}.chart"))
-                for diff in x:
-                    current_grad, current_loss = self.train(x[diff], y[diff], lr)
-                    if k == 0:
-                        grad = current_grad
-                    else:
-                        grad = (tf.math.add(var1, var2) for var1, var2 in zip(grad,
-                                                                              current_grad))
-                    k += 1
+                y = json.load(open(f"{train_dir}/{name}.bpm"))
+                current_grad, current_loss = self.train(x, y, lr)
+                if i == 0:
+                    grad = current_grad
+                else:
+                    grad = (tf.math.add(var1, var2) for var1, var2 in zip(grad,
+                                                                          current_grad))
                 print(f"epoch: {epoch+1}\ttraining on: {name}\t({i+1}/{total})")
-            grad = (tf.cast(dvar/k, dvar.dtype) for dvar in grad)
+            grad = (tf.cast(dvar/len(index), dvar.dtype) for dvar in grad)
             self.opt.apply_gradients(zip(grad, self.trainable_variables))
 
 
 if __name__ == "__main__":
 
     name = "A Happy Death"
+
     audio = pkl.load(open(f"./dataset_ddr/{name}.pkl", "rb"))
-    chart = json.load(open(f"./dataset_ddr/{name}.chart", "r"))
+    bpm = json.load(open(f"./dataset_ddr/{name}.bpm", "r"))
     metadata = json.load(open(f"./dataset_ddr/{name}.metadata", "r"))
 
     model = OnsetModel()
@@ -92,10 +90,12 @@ if __name__ == "__main__":
     t1 = time.perf_counter()
     print(f"time elapsed: {t1-t0}")
 
-    pred = model(audio[list(audio.keys())[0]])
+    pred = model(audio)
+    print(sum(pred))
+    print(pred.shape)
     pkl.dump(model.trainable_variables,
              open("weights.sav", "wb"))
-    plt.plot(range(len(audio[list(audio.keys())[0]]) - 15), pred)
-    plt.plot(range(len(audio[list(audio.keys())[0]]) - 15),
-             chart[list(chart.keys())[0]][8:-7], alpha=.2)
+    plt.plot(range(len(audio) - 15), pred)
+    #plt.plot(range(len(audio) - 15),
+             #bpm[8:-7], alpha=.2)
     plt.show()
