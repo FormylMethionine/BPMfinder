@@ -2,3 +2,4 @@
 
 rm dataset_ddr/*
 python parser.py
+./create_index.sh

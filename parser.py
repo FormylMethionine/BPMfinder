@@ -105,8 +105,8 @@ def beats(metadata, bpm, dur):
     beats = []
     time = -1 * float(metadata["#OFFSET"]) * 1000
     beat = 0
-    for beat in bpm:
-        bpmtmp = abs(bpm[beat])
+    for beat, bpm in enumerate(bpm):
+        bpmtmp = abs(bpm)
         if time > (dur*1000):
             break
         else:
@@ -148,5 +148,6 @@ if __name__ == "__main__":
     pool.map_async(parse, os.listdir("./dataset_ddr/stepcharts/"))
     pool.close()
     pool.join()
+    #parse("Nostalogic.sm")
     #for f in os.listdir("./dataset_ddr/stepcharts"):
         #parse(f)
