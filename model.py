@@ -56,6 +56,7 @@ class OnsetModel(tf.Module):
     def fit_dir(self, train_dir, epochs, lr=1):
         index = [line[:-1] for line in open(f"{train_dir}/index.txt")]
         total = len(index)
+        avg_loss = []
         for epoch in range(epochs):
             for i in range(len(index)):
                 name = index[i]
@@ -63,18 +64,22 @@ class OnsetModel(tf.Module):
                 y = json.load(open(f"{train_dir}/{name}.bpm"))
                 current_grad, current_loss = self.train(x, y, lr)
                 if i == 0:
+                    loss_epoch = current_loss
                     grad = current_grad
                 else:
+                    loss_epoch += current_loss
                     grad = (tf.math.add(var1, var2) for var1, var2 in zip(grad,
                                                                           current_grad))
                 print(f"epoch: {epoch+1}\ttraining on: {name}\t({i+1}/{total})")
+            avg_loss.append(loss_epoch/len(index))
             grad = (tf.cast(dvar/len(index), dvar.dtype) for dvar in grad)
             self.opt.apply_gradients(zip(grad, self.trainable_variables))
+        return avg_loss
 
 
 if __name__ == "__main__":
 
-    name = "A Happy Death"
+    name = "Anti the Holic"
 
     audio = pkl.load(open(f"./dataset_ddr/{name}.pkl", "rb"))
     bpm = json.load(open(f"./dataset_ddr/{name}.bpm", "r"))
@@ -86,16 +91,19 @@ if __name__ == "__main__":
     model.compile(loss, opt)
 
     t0 = time.perf_counter()
-    model.fit_dir("./dataset_ddr", 2, 1)
+    loss = model.fit_dir("./dataset_ddr", 2, 1)
     t1 = time.perf_counter()
     print(f"time elapsed: {t1-t0}")
 
     pred = model(audio)
-    print(sum(pred))
-    print(pred.shape)
     pkl.dump(model.trainable_variables,
              open("weights.sav", "wb"))
+
+    f1 = plt.figure(1)
     plt.plot(range(len(audio) - 15), pred)
-    #plt.plot(range(len(audio) - 15),
-             #bpm[8:-7], alpha=.2)
+    plt.plot(range(len(audio) - 15),
+             bpm[8:-7], alpha=.2)
+
+    f2 = plt.figure(2)
+    plt.plot(range(2), loss)
     plt.show()
