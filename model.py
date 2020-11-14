@@ -1,6 +1,5 @@
 import numpy as np
 import time
-import os
 import json
 import pickle as pkl
 import tensorflow as tf
@@ -13,7 +12,7 @@ class OnsetModel(tf.Module):
     def __init__(self, name=None, **kwargs):
         super().__init__(**kwargs)
         self.layers = [layers.Conv2D(10, (7, 3), activation='relu',
-                                     input_shape=(15, 80, 3),
+                                     input_shape=(15, 80, 4),
                                      data_format='channels_last'),
                        layers.MaxPool2D(pool_size=(1, 3), strides=3),
                        layers.Conv2D(20, (3, 3), activation='relu',
@@ -86,7 +85,7 @@ class OnsetModel(tf.Module):
                 x = pkl.load(open(f"{val_dir}/{name}.pkl", "rb"))
                 y = json.load(open(f"{val_dir}/{name}.bpm", "r"))
                 val_loss += self.evaluate(x, y)
-                print(f"epoch: {epoch+1}\t" +
+                print(f"epoch: {epoch+1}/{epochs}\t" +
                       f"evaluating: {name}\t({i+1}/{total_val})")
             val_loss_ret.append(val_loss/total_val)
 
@@ -102,61 +101,25 @@ class OnsetModel(tf.Module):
         print(f"test loss:\t{test_loss}")
         return val_loss_ret, train_loss_ret
 
+    def save(self):
+        ret = []
+        for layer in self.layers:
+            ret.append(layer.get_weights())
+        return ret
+
+    def load(self, W):
+        for layer, w in zip(self.layers, W):
+            layer.set_weights(w)
+
 
 if __name__ == "__main__":
 
-    name = "A Happy Death"
-
-    audio = pkl.load(open(f"./dataset_ddr/train/{name}.pkl", "rb"))
-    bpm = json.load(open(f"./dataset_ddr/train/{name}.bpm", "r"))
-    metadata = json.load(open(f"./dataset_ddr/train/{name}.metadata", "r"))
-
-    name2 = "Anti the Holic"
-
-    audio2 = pkl.load(open(f"./dataset_ddr/val/{name2}.pkl", "rb"))
-    bpm2 = json.load(open(f"./dataset_ddr/val/{name2}.bpm", "r"))
-    metadata2 = json.load(open(f"./dataset_ddr/val/{name2}.metadata", "r"))
-
-    name3 = "Hold Release Rakshasa and Carcasses"
-
-    audio3 = pkl.load(open(f"./dataset_ddr/val/{name3}.pkl", "rb"))
-    bpm3 = json.load(open(f"./dataset_ddr/val/{name3}.bpm", "r"))
-    metadata3 = json.load(open(f"./dataset_ddr/val/{name3}.metadata", "r"))
-
     model = OnsetModel()
-    loss = tf.keras.losses.BinaryCrossentropy(from_logits=False)
-    opt = tf.keras.optimizers.Adam()
-    model.compile(loss, opt)
-
-    epochs = 10
-    t0 = time.perf_counter()
-    val_loss, train_loss = model.fit("./dataset_ddr/train",
-                                     "./dataset_ddr/val",
-                                     "./dataset_ddr/test",
-                                     epochs)
-    t1 = time.perf_counter()
-    print(f"time elapsed: {t1-t0}")
-
-    pred = model(audio)
-    pred2 = model(audio2)
-    pred3 = model(audio3)
-    pkl.dump(model.trainable_variables,
+    model.compile(tf.keras.losses.BinaryCrossentropy(),
+                  tf.keras.optimizers.Adam())
+    model(pkl.load(open("dataset_ddr/train/A Happy Death.pkl", "rb")))
+    #model.fit("dataset_ddr/train", "dataset_ddr/val", "dataset_ddr/test",
+              #1)
+    model.load(pkl.load(open("weights.sav", "rb")))
+    pkl.dump(model.save(),
              open("weights.sav", "wb"))
-
-    f1 = plt.figure(1)
-    plt.plot(range(len(audio) - 15), pred)
-    plt.plot(range(len(audio) - 15),
-             bpm[8:-7], alpha=.2)
-    f2 = plt.figure(2)
-    plt.plot(range(len(audio2) - 15), pred2)
-    plt.plot(range(len(audio2) - 15),
-             bpm2[8:-7], alpha=.2)
-    f3 = plt.figure(3)
-    plt.plot(range(len(audio3) - 15), pred3)
-    plt.plot(range(len(audio3) - 15),
-             bpm3[8:-7], alpha=.2)
-    f4 = plt.figure(4)
-    plt.plot(range(epochs), val_loss)
-    f5 = plt.figure(5)
-    plt.plot(range(epochs), train_loss)
-    plt.show()
