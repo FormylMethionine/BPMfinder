@@ -7,7 +7,8 @@ import multiprocessing as mp
 
 
 def create_analyzers():
-    nffts = [1024, 2048, 4096]
+    # nffts = [1024, 2048, 4096]
+    nffts = [1024, 2048, 4096, 8192]
     samplerate = 44100
     analyzers = []
     for nfft in nffts:
@@ -23,10 +24,11 @@ def create_analyzers():
 
 
 def analyze(path):
-    nffts = [1024, 2048, 4096]
+    # nffts = [1024, 2048, 4096]
     samplerate = 44100
     loader = essentia.standard.MonoLoader(filename=path, sampleRate=samplerate)
     audiodata = loader()
+    time = len(audiodata)/samplerate
     ret = []
     analyzers = create_analyzers()
     for nfft, win, spec, mel in analyzers:
@@ -37,7 +39,7 @@ def analyze(path):
         ret.append(feats)
     ret = np.transpose(np.stack(ret), (1, 2, 0))
     ret = np.log(ret + 1e-16)
-    return ret
+    return ret, time
 
 
 def analyze_audio(f):

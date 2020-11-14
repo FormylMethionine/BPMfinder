@@ -127,13 +127,14 @@ def parse(f):
     print("Converting '" + f + "'")
     path = "./dataset_ddr/stepcharts/" + f
     metadata = metadata_sm(path)
+    metadata["#MUSIC"] = metadata["#MUSIC"].split('.')[0] + ".ogg"
     music = metadata["#MUSIC"]
-    tags = TinyTag.get(f"./dataset_ddr/audiofiles/{music}")
-    time = tags.duration
+    #tags = TinyTag.get(f"./dataset_ddr/audiofiles/{music}")
+    #time = tags.duration
     path_audio = "./dataset_ddr/audiofiles/" + metadata["#MUSIC"]
+    audio, time = analyze(path_audio)
     bpm = parse_bpm(metadata["#BPMS"], time)
     bpm = beats(metadata, bpm, time)
-    audio = analyze(path_audio)
     bpm = vectorize(bpm, audio, time)
     with open('dataset_ddr/'+f.split('.')[0]+'.bpm', 'w') as fi:
         fi.write(json.dumps(bpm))
