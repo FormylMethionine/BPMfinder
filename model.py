@@ -49,41 +49,62 @@ class OnsetModel(tf.Module):
             current_loss = self.loss(y, self.__call__(x))
         grad = t.gradient(current_loss, self.trainable_variables)
         self.opt.apply_gradients(zip(grad, self.trainable_variables))
-        return grad, current_loss
+        return current_loss
 
-    def fit_song(self, x, y, epochs):
-        for epoch in range(epochs):
-            loss = self.train(x, y)
-            print(f"epoch: {epoch}\tloss: {loss}")
+    def evaluate(self, x, y):
+        y = tf.constant(y[8:-7])
+        current_loss = self.loss(y, self.__call__(x))
+        return current_loss
 
-    def fit_dir(self, train_dir, epochs):
-        index = [line[:-1] for line in open(f"{train_dir}/index.txt")]
-        total = len(index)
-        avg_loss = []
+    def fit(self, train_dir, val_dir, test_dir, epochs):
+        index_train = [line[:-1] for line in open(f"{train_dir}/index.txt")]
+        index_val = [line[:-1] for line in open(f"{val_dir}/index.txt")]
+        index_test = [line[:-1] for line in open(f"{test_dir}/index.txt")]
+
+        total_train = len(index_train)
+        total_val = len(index_val)
+        total_test = len(index_test)
+
+        train_loss_ret = []
+        val_loss_ret = []
+
         for epoch in range(epochs):
-            for i in range(len(index)):
-                name = index[i]
+            for i in range(total_train):  # training
+                name = index_train[i]
+                train_loss = 0
                 x = pkl.load(open(f"{train_dir}/{name}.pkl", "rb"))
-                y = json.load(open(f"{train_dir}/{name}.bpm"))
-                current_grad, current_loss = self.train(x, y)
-                if i == 0:
-                    loss_epoch = current_loss
-                    grad = current_grad
-                else:
-                    loss_epoch += current_loss
-                    grad = (tf.math.add(var1, var2) for
-                            var1, var2 in zip(grad, current_grad))
+                y = json.load(open(f"{train_dir}/{name}.bpm", "r"))
+                train_loss += self.train(x, y)
+                print(f"epoch: {epoch+1}/{epochs}\t" +
+                      f"training on: {name}\t({i+1}/{total_train})")
+            train_loss /= total_train
+            train_loss_ret.append(train_loss)
+
+            for i in range(total_val):  # validation
+                name = index_val[i]
+                val_loss = 0
+                x = pkl.load(open(f"{val_dir}/{name}.pkl", "rb"))
+                y = json.load(open(f"{val_dir}/{name}.bpm", "r"))
+                val_loss += self.evaluate(x, y)
                 print(f"epoch: {epoch+1}\t" +
-                      f"training on: {name}\t({i+1}/{total})")
-            avg_loss.append(loss_epoch/len(index))
-            grad = (tf.cast(dvar/len(index), dvar.dtype) for dvar in grad)
-            #self.opt.apply_gradients(zip(grad, self.trainable_variables))
-        return avg_loss
+                      f"evaluating: {name}\t({i+1}/{total_val})")
+            val_loss_ret.append(val_loss/total_val)
+
+        for i in range(total_test):  # test
+            name = index_test[i]
+            test_loss = 0
+            x = pkl.load(open(f"{test_dir}/{name}.pkl", "rb"))
+            y = json.load(open(f"{test_dir}/{name}.bpm", "r"))
+            test_loss += self.evaluate(x, y)
+            print(f"testing: {name}\t({i+1}/{total_test})")
+
+        test_loss /= total_test
+        print(f"test loss:\t{test_loss}")
+        return val_loss_ret, train_loss_ret
 
 
 if __name__ == "__main__":
 
-    #name = "Anti the Holic"
     name = "A Happy Death"
 
     audio = pkl.load(open(f"./dataset_ddr/train/{name}.pkl", "rb"))
@@ -92,24 +113,27 @@ if __name__ == "__main__":
 
     name2 = "Anti the Holic"
 
-    audio2 = pkl.load(open(f"./dataset_ddr/train/{name2}.pkl", "rb"))
-    bpm2 = json.load(open(f"./dataset_ddr/train/{name2}.bpm", "r"))
-    metadata2 = json.load(open(f"./dataset_ddr/train/{name2}.metadata", "r"))
+    audio2 = pkl.load(open(f"./dataset_ddr/val/{name2}.pkl", "rb"))
+    bpm2 = json.load(open(f"./dataset_ddr/val/{name2}.bpm", "r"))
+    metadata2 = json.load(open(f"./dataset_ddr/val/{name2}.metadata", "r"))
 
     name3 = "Hold Release Rakshasa and Carcasses"
 
-    audio3 = pkl.load(open(f"./dataset_ddr/train/{name3}.pkl", "rb"))
-    bpm3 = json.load(open(f"./dataset_ddr/train/{name3}.bpm", "r"))
-    metadata3 = json.load(open(f"./dataset_ddr/train/{name3}.metadata", "r"))
+    audio3 = pkl.load(open(f"./dataset_ddr/val/{name3}.pkl", "rb"))
+    bpm3 = json.load(open(f"./dataset_ddr/val/{name3}.bpm", "r"))
+    metadata3 = json.load(open(f"./dataset_ddr/val/{name3}.metadata", "r"))
 
     model = OnsetModel()
     loss = tf.keras.losses.BinaryCrossentropy(from_logits=False)
     opt = tf.keras.optimizers.Adam()
     model.compile(loss, opt)
 
-    epochs = 5
+    epochs = 10
     t0 = time.perf_counter()
-    loss = model.fit_dir("./dataset_ddr/train", epochs)
+    val_loss, train_loss = model.fit("./dataset_ddr/train",
+                                     "./dataset_ddr/val",
+                                     "./dataset_ddr/test",
+                                     epochs)
     t1 = time.perf_counter()
     print(f"time elapsed: {t1-t0}")
 
@@ -128,5 +152,11 @@ if __name__ == "__main__":
     plt.plot(range(len(audio2) - 15),
              bpm2[8:-7], alpha=.2)
     f3 = plt.figure(3)
-    plt.plot(range(epochs), loss)
+    plt.plot(range(len(audio3) - 15), pred3)
+    plt.plot(range(len(audio3) - 15),
+             bpm3[8:-7], alpha=.2)
+    f4 = plt.figure(4)
+    plt.plot(range(epochs), val_loss)
+    f5 = plt.figure(5)
+    plt.plot(range(epochs), train_loss)
     plt.show()
