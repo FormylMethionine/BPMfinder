@@ -8,7 +8,7 @@ import multiprocessing as mp
 
 def create_analyzers():
     # nffts = [1024, 2048, 4096]
-    nffts = [1024, 2048, 4096, 8192]
+    nffts = [1024, 2048, 4096]
     samplerate = 44100
     analyzers = []
     for nfft in nffts:

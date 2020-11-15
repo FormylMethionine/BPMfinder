@@ -12,7 +12,7 @@ class OnsetModel(tf.Module):
     def __init__(self, name=None, **kwargs):
         super().__init__(**kwargs)
         self.layers = [layers.Conv2D(10, (7, 3), activation='relu',
-                                     input_shape=(15, 80, 4),
+                                     input_shape=(15, 80, 3),
                                      data_format='channels_last'),
                        layers.MaxPool2D(pool_size=(1, 3), strides=3),
                        layers.Conv2D(20, (3, 3), activation='relu',
