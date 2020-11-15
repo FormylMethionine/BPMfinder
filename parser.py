@@ -3,8 +3,7 @@ import json
 import numpy as np
 import pickle as pkl
 import multiprocessing as mp
-from tinytag import TinyTag
-from time import perf_counter
+import os.path
 from analyze_audio import analyze
 
 
@@ -128,20 +127,24 @@ def parse(f):
     path = "./dataset_ddr/stepcharts/" + f
     metadata = metadata_sm(path)
     metadata["#MUSIC"] = metadata["#MUSIC"].split('.')[0] + ".ogg"
-    music = metadata["#MUSIC"]
-    #tags = TinyTag.get(f"./dataset_ddr/audiofiles/{music}")
-    #time = tags.duration
     path_audio = "./dataset_ddr/audiofiles/" + metadata["#MUSIC"]
-    audio, time = analyze(path_audio)
-    bpm = parse_bpm(metadata["#BPMS"], time)
-    bpm = beats(metadata, bpm, time)
-    bpm = vectorize(bpm, audio, time)
-    with open('dataset_ddr/'+f.split('.')[0]+'.bpm', 'w') as fi:
-        fi.write(json.dumps(bpm))
-    with open('dataset_ddr/'+f.split('.')[0]+'.metadata', 'w') as fi:
-        fi.write(json.dumps(metadata))
-    with open('dataset_ddr/'+f.split('.')[0]+'.pkl', 'wb') as fi:
-        fi.write(pkl.dumps(audio))
+    errors = []
+    if os.path.exists(path_audio):
+        audio, time = analyze(path_audio)
+        bpm = parse_bpm(metadata["#BPMS"], time)
+        bpm = beats(metadata, bpm, time)
+        bpm = vectorize(bpm, audio, time)
+        with open('dataset_ddr/'+f.split('.')[0]+'.bpm', 'w') as fi:
+            fi.write(json.dumps(bpm))
+        with open('dataset_ddr/'+f.split('.')[0]+'.metadata', 'w') as fi:
+            fi.write(json.dumps(metadata))
+        with open('dataset_ddr/'+f.split('.')[0]+'.pkl', 'wb') as fi:
+            fi.write(pkl.dumps(audio))
+    else:
+        errors.append(f)
+    with open('errors.txt', 'wb') as fi:
+        for error in errors:
+            fi.write(errors)
 
 
 if __name__ == "__main__":
@@ -149,6 +152,5 @@ if __name__ == "__main__":
     pool.map_async(parse, os.listdir("./dataset_ddr/stepcharts/"))
     pool.close()
     pool.join()
-    #parse("Nostalogic.sm")
     #for f in os.listdir("./dataset_ddr/stepcharts"):
         #parse(f)

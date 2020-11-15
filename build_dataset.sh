@@ -34,6 +34,7 @@ mkdir "../val"
 
 for f in $(find -name "*.sm"); do
 	echo "Copying $f ..."
+	iconv -t utf-8 $f -o $f
 	cp "$f" "../stepcharts"
 done
 #echo $(ls -l ../stepcharts | wc -l) "files copied"
