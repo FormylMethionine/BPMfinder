@@ -43,15 +43,13 @@ class OnsetModel(tf.Module):
             inputs = layer(inputs)
         return inputs
 
-    def train(self, x, y, batch_size):
-        for i in range(7, floor(len(x)/(batch_size+8))):
-            inputs = x[i-7:i+batch_size+8]
-            labels = tf.constant(y[i:i+batch_size])
-            with tf.GradientTape() as t:
-                current_loss = self.loss(labels, self.__call__(inputs))
-            grad = t.gradient(current_loss, self.trainable_variables)
-            self.opt.apply_gradients(zip(grad, self.trainable_variables))
-        return current_loss
+    def train(self, x, y):
+        y = tf.constant(y[7:-8])
+        with tf.GradientTape() as t:
+            current_loss = self.loss(y, self.__call__(x))
+        grad = t.gradient(current_loss, self.trainable_variables)
+        #self.opt.apply_gradients(zip(grad, self.trainable_variables))
+        return grad, current_loss
 
     def evaluate(self, x, y):
         y = tf.constant(y[8:-7])
@@ -63,7 +61,7 @@ class OnsetModel(tf.Module):
         index_val = [line[:-1] for line in open(f"{val_dir}/index.txt")]
         index_test = [line[:-1] for line in open(f"{test_dir}/index.txt")]
 
-        total_train = 100
+        total_train = batch_size
         total_val = len(index_val)
         total_test = len(index_test)
 
@@ -71,21 +69,28 @@ class OnsetModel(tf.Module):
         val_loss_ret = []
 
         for epoch in range(epochs):
+            train_loss = 0
             np.random.shuffle(index_train)
             for i, name in enumerate(index_train[:total_train]):
                 # training
-                train_loss = 0
                 x = pkl.load(open(f"{train_dir}/{name}.pkl", "rb"))
                 y = json.load(open(f"{train_dir}/{name}.bpm", "r"))
-                train_loss += self.train(x, y, batch_size)
+                curr_grad, curr_train_loss = self.train(x, y)
+                train_loss += curr_train_loss
+                if i == 0:
+                    grad = curr_grad
+                else:
+                    grad += curr_grad
                 print(f"epoch: {epoch+1}/{epochs}\t" +
                       f"training on: {name}\t({i+1}/{total_train})")
+            grad = (tf.math.divide(dvar, total_train) for dvar in grad)
+            self.opt.apply_gradients(zip(grad, self.trainable_variables))
             train_loss /= total_train
             train_loss_ret.append(train_loss)
 
+            val_loss = 0
             for i in range(total_val):  # validation
                 name = index_val[i]
-                val_loss = 0
                 x = pkl.load(open(f"{val_dir}/{name}.pkl", "rb"))
                 y = json.load(open(f"{val_dir}/{name}.bpm", "r"))
                 val_loss += self.evaluate(x, y)
@@ -93,9 +98,9 @@ class OnsetModel(tf.Module):
                       f"evaluating: {name}\t({i+1}/{total_val})")
             val_loss_ret.append(val_loss/total_val)
 
+        test_loss = 0
         for i in range(total_test):  # test
             name = index_test[i]
-            test_loss = 0
             x = pkl.load(open(f"{test_dir}/{name}.pkl", "rb"))
             y = json.load(open(f"{test_dir}/{name}.bpm", "r"))
             test_loss += self.evaluate(x, y)
