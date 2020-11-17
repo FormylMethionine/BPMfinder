@@ -132,12 +132,13 @@ def parse(f):
         bpm = parse_bpm(metadata["#BPMS"], time)
         bpm = beats(metadata, bpm, time)
         bpm = vectorize(bpm, audio, time)
-        with open('dataset_ddr/'+f.split('.')[0]+'.bpm', 'w') as fi:
-            fi.write(json.dumps(bpm))
-        with open('dataset_ddr/'+f.split('.')[0]+'.metadata', 'w') as fi:
-            fi.write(json.dumps(metadata))
-        with open('dataset_ddr/'+f.split('.')[0]+'.pkl', 'wb') as fi:
-            fi.write(pkl.dumps(audio))
+        if time < 150 and time > 60:
+            with open('dataset_ddr/'+f.split('.')[0]+'.bpm', 'w') as fi:
+                fi.write(json.dumps(bpm))
+            with open('dataset_ddr/'+f.split('.')[0]+'.metadata', 'w') as fi:
+                fi.write(json.dumps(metadata))
+            with open('dataset_ddr/'+f.split('.')[0]+'.pkl', 'wb') as fi:
+                fi.write(pkl.dumps(audio))
 
 
 if __name__ == "__main__":
