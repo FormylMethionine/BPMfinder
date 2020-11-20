@@ -102,7 +102,7 @@ def parse_bpm(bpm, dur):
 
 def beats(metadata, bpm, dur):
     beats = []
-    time = -1 * float(metadata["#OFFSET"]) * 1000
+    time = float(metadata["#OFFSET"]) * 1000
     beat = 0
     for beat, bpm in enumerate(bpm):
         bpmtmp = abs(bpm)
