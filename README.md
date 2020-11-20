@@ -71,6 +71,7 @@ Happiness Comes from Reflection Theory (in orange are figured the annotations
 for the beats).
 
 ![Spectrogram, beat predictions and beat annotations for Happiness Comes](./img/Happiness Comes_spec.png)
+
 ![Periodogram for Happiness Comes](./img/Happiness_Comes_period.png)
 
 However, if the model is correctly predicting the beats in most cases, he also
@@ -85,9 +86,16 @@ Here are results for a song that does not come from the dataset: [Chiru Chiru
 By REOL](https://www.youtube.com/watch?v=VVaNq9uSJgY).
 
 ![Spectrogram, beat predictions and beat annotations for Chiru Chiru](./img/chiru_chiru_spec.png)
+
 ![Periodogram for Happiness Comes](./img/chiru_chiru_period.png)
 
 For Chiru Chiru, the model correctly predicts a tempo of 128 BPM.
+
+## Still to do
+- More training, for longer times
+- Implementing early stopping
+- Isolating precises location of each beat
+- Improve on the NN architecture
 
 ## References
 
@@ -96,9 +104,3 @@ Donahue, Chris & Lipton, Zachary & McAuley, Julian. (2017). Dance Dance Convolut
 
 <a id="2">[1]</a>
 J. Schlüter and S. Böck, "Improved musical onset detection with Convolutional Neural Networks," 2014 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Florence, 2014, pp. 6979-6983, doi: 10.1109/ICASSP.2014.6854953.
-
-## Still to do
-- More training, for longer times
-- Implementing early stopping
-- Isolating precises location of each beat
-- Improve on the NN architecture
