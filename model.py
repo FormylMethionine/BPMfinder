@@ -52,7 +52,7 @@ class OnsetModel(tf.Module):
         return grad, current_loss
 
     def evaluate(self, x, y):
-        y = tf.constant(y[8:-7])
+        y = tf.constant(y[7:-8])
         current_loss = self.loss(y, self.__call__(x))
         return current_loss
 
@@ -61,7 +61,8 @@ class OnsetModel(tf.Module):
         index_val = [line[:-1] for line in open(f"{val_dir}/index.txt")]
         index_test = [line[:-1] for line in open(f"{test_dir}/index.txt")]
 
-        total_train = batch_size
+        if batch_size == "full":
+            batch_size = len(index_train)
         total_val = len(index_val)
         total_test = len(index_test)
 
@@ -71,7 +72,7 @@ class OnsetModel(tf.Module):
         for epoch in range(epochs):
             train_loss = 0
             np.random.shuffle(index_train)
-            for i, name in enumerate(index_train[:total_train]):
+            for i, name in enumerate(index_train[:batch_size]):
                 # training
                 x = pkl.load(open(f"{train_dir}/{name}.pkl", "rb"))
                 y = json.load(open(f"{train_dir}/{name}.bpm", "r"))
@@ -82,10 +83,10 @@ class OnsetModel(tf.Module):
                 else:
                     grad += curr_grad
                 print(f"epoch: {epoch+1}/{epochs}\t" +
-                      f"training on: {name}\t({i+1}/{total_train})")
-            grad = (tf.math.divide(dvar, total_train) for dvar in grad)
+                      f"training on: {name}\t({i+1}/{batch_size})")
+            grad = (tf.math.divide(dvar, batch_size) for dvar in grad)
             self.opt.apply_gradients(zip(grad, self.trainable_variables))
-            train_loss /= total_train
+            train_loss /= batch_size
             train_loss_ret.append(train_loss)
 
             val_loss = 0
