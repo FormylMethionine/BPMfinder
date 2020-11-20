@@ -71,6 +71,7 @@ Happiness Comes from Reflection Theory (in orange are figured the annotations
 for the beats).
 
 [Spectrogram, beat predictions and beat annotations for Happiness Comes](img/Happiness Comes_spec.png)
+
 [Periodogram for Happiness Comes](img/Happiness_Comes_period.png)
 
 However, if the model is correctly predicting the beats in most cases, he also
@@ -85,6 +86,7 @@ Here are results for a song that does not come from the dataset: [Chiru Chiru
 By REOL](https://www.youtube.com/watch?v=VVaNq9uSJgY).
 
 [Spectrogram, beat predictions and beat annotations for Chiru Chiru](img/chiru_chiru_spec.png)
+
 [Periodogram for Happiness Comes](img/chiru_chiru_period.png)
 
 For Chiru Chiru, the model correctly predicts a tempo of 128 BPM.
