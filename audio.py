@@ -5,6 +5,7 @@ import pickle as pkl
 import os
 import multiprocessing as mp
 
+
 def create_analyzers():
     nffts = [1024, 2048, 4096]
     samplerate = 44100
@@ -62,18 +63,3 @@ def time(path):
     audiodata = loader()
     time = len(audiodata)/samplerate
     return time
-
-
-def analyze_audio(f):
-    print("Converting '" + f + "'")
-    path = "./dataset_ddr/audiofiles/" + f
-    audiodata = analyze(path)
-    with open('dataset_ddr/'+f.split('.')[0]+'.pkl', 'wb') as fi:
-        fi.write(pkl.dumps(audiodata))
-
-
-if __name__ == "__main__":
-    pool = mp.Pool(mp.cpu_count() - 1)
-    pool.map_async(analyze_audio, os.listdir("./dataset_ddr/audiofiles/"))
-    pool.close()
-    pool.join()

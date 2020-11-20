@@ -1,14 +1,11 @@
 import numpy as np
-import time
 import json
 import pickle as pkl
 import tensorflow as tf
 from tensorflow.keras import layers
-from math import floor
-import matplotlib.pyplot as plt
 
 
-class OnsetModel(tf.Module):
+class BeatCNN(tf.Module):
 
     def __init__(self, name=None, **kwargs):
         super().__init__(**kwargs)
@@ -48,7 +45,6 @@ class OnsetModel(tf.Module):
         with tf.GradientTape() as t:
             current_loss = self.loss(y, self.__call__(x))
         grad = t.gradient(current_loss, self.trainable_variables)
-        #self.opt.apply_gradients(zip(grad, self.trainable_variables))
         return grad, current_loss
 
     def evaluate(self, x, y):
@@ -70,6 +66,8 @@ class OnsetModel(tf.Module):
         val_loss_ret = []
 
         for epoch in range(epochs):
+
+            # Training
             train_loss = 0
             np.random.shuffle(index_train)
             for i, name in enumerate(index_train[:batch_size]):
@@ -89,8 +87,9 @@ class OnsetModel(tf.Module):
             train_loss /= batch_size
             train_loss_ret.append(train_loss)
 
+            # Validation
             val_loss = 0
-            for i in range(total_val):  # validation
+            for i in range(total_val):
                 name = index_val[i]
                 x = pkl.load(open(f"{val_dir}/{name}.pkl", "rb"))
                 y = json.load(open(f"{val_dir}/{name}.bpm", "r"))
@@ -99,8 +98,9 @@ class OnsetModel(tf.Module):
                       f"evaluating: {name}\t({i+1}/{total_val})")
             val_loss_ret.append(val_loss/total_val)
 
+        # Test
         test_loss = 0
-        for i in range(total_test):  # test
+        for i in range(total_test):
             name = index_test[i]
             x = pkl.load(open(f"{test_dir}/{name}.pkl", "rb"))
             y = json.load(open(f"{test_dir}/{name}.bpm", "r"))
@@ -128,16 +128,3 @@ class OnsetModel(tf.Module):
     def load(self, path):
         W = pkl.load(open(path, "rb"))
         self.set_weights(W)
-
-
-if __name__ == "__main__":
-
-    model = OnsetModel()
-    model.compile(tf.keras.losses.BinaryCrossentropy(),
-                  tf.keras.optimizers.Adam())
-    model(pkl.load(open("dataset_ddr/train/A Happy Death.pkl", "rb")))
-    #model.fit("dataset_ddr/train", "dataset_ddr/val", "dataset_ddr/test",
-              #1)
-    model.load(pkl.load(open("weights.sav", "rb")))
-    pkl.dump(model.save(),
-             open("weights.sav", "wb"))

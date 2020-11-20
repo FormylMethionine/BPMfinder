@@ -2,9 +2,8 @@ import os
 import json
 import numpy as np
 import pickle as pkl
-import multiprocessing as mp
 import os.path
-from analyze_audio import analyze_with_time
+from audio import analyze_with_time
 
 
 def metadata_sm(path):
@@ -33,50 +32,6 @@ def metadata_sm(path):
     with open(path, "r") as f:
         for line in f:
             line = line.split(":")
-            if line[0] in keys:
-                ret[line[0]] = line[1][:len(line[1])-2].strip()
-    return ret
-
-
-def metadata_ssc(path):
-    keys = {"#VERSION",
-            "#TITLE",
-            "#SUBTITLE",
-            "#ARTIST",
-            "#TITLETRANSLIT",
-            "#SUBTITLETRANSLIT",
-            "#ARTISTTRANSLIT",
-            "#GENRE",
-            "#ORIGIN",
-            "#CREDIT",
-            "#BANNER",
-            "#BACKGROUND",
-            "#PREVIEWVID",
-            "#CDTITLE",
-            "#MUSIC",
-            "#OFFSET",
-            "#SAMPLESTART",
-            "#SAMPLELENGTH",
-            "#SELECTABLE",
-            "#SONGTYPE",
-            "#SONGCATEGORY",
-            "#VOLUME",
-            "#DISPLAYBPM",
-            "#BPMS",
-            "#TIMESIGNATURES",
-            "#TICKCOUNTS",
-            "#COMBOS",
-            "#SPEEDS",
-            "#SCROLLS",
-            "#LABELS",
-            "#LASTSECONDHINT",
-            "#BGCHANGES"}
-    ret = {}
-    with open(path, "r") as f:
-        for line in f:
-            line = line.split(":")
-            if line[0] == "#NOTEDATA":
-                break
             if line[0] in keys:
                 ret[line[0]] = line[1][:len(line[1])-2].strip()
     return ret
@@ -142,10 +97,6 @@ def parse(f):
 
 
 if __name__ == "__main__":
-    #pool = mp.Pool(mp.cpu_count() - 2)
-    #pool.map_async(parse, os.listdir("./dataset_ddr/stepcharts/"))
-    #pool.close()
-    #pool.join()
     files = os.listdir("./dataset_ddr/stepcharts")
     for i, f in enumerate(files):
         print(f"Converting '{f}\t{i+1}/{len(files)}'")
