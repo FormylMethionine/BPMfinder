@@ -70,8 +70,8 @@ see on the following plots, realized for a song present in the test dataset,
 Happiness Comes from Reflection Theory (in orange are figured the annotations
 for the beats).
 
-[Spectrogram, beat predictions and beat annotations for Happiness Comes](./img/Happiness Comes_spec.png)
-[Periodogram for Happiness Comes](./img/Happiness_Comes_period.png)
+![Spectrogram, beat predictions and beat annotations for Happiness Comes](./img/Happiness Comes_spec.png)
+![Periodogram for Happiness Comes](./img/Happiness_Comes_period.png)
 
 However, if the model is correctly predicting the beats in most cases, he also
 seems to be predicting eighth notes between two beats. This can be explained by
@@ -84,8 +84,8 @@ tempo of 132 BPM.
 Here are results for a song that does not come from the dataset: [Chiru Chiru
 By REOL](https://www.youtube.com/watch?v=VVaNq9uSJgY).
 
-[Spectrogram, beat predictions and beat annotations for Chiru Chiru](./img/chiru_chiru_spec.png)
-[Periodogram for Happiness Comes](./img/chiru_chiru_period.png)
+![Spectrogram, beat predictions and beat annotations for Chiru Chiru](./img/chiru_chiru_spec.png)
+![Periodogram for Happiness Comes](./img/chiru_chiru_period.png)
 
 For Chiru Chiru, the model correctly predicts a tempo of 128 BPM.
 
