@@ -5,7 +5,6 @@ import pickle as pkl
 import os
 import multiprocessing as mp
 
-
 def create_analyzers():
     nffts = [1024, 2048, 4096]
     samplerate = 44100
