@@ -4,6 +4,7 @@ import numpy as np
 import pickle as pkl
 import os.path
 from audio import analyze_with_time
+from math import ceil
 
 
 def metadata_sm(path):
@@ -73,7 +74,8 @@ def vectorize(beats, audio, time):
     ret = np.zeros(len(audio))
     pos_percent = [i/(time*1000) for i in beats if i >= 0]
     for i in pos_percent:
-        ret[int(i*(len(audio) - 1))] = 1
+        ret[int(i*(len(audio)-1)) - ceil(time/(100*len(audio))):
+            int(i*(len(audio)-1)) + ceil(time/(100*len(audio))) + 1] = 1
     return ret.tolist()
 
 
