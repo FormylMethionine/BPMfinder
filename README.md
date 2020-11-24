@@ -70,7 +70,7 @@ see on the following plots, realized for a song present in the test dataset,
 Happiness Comes from Reflection Theory (in orange are figured the annotations
 for the beats).
 
-![Spectrogram, beat predictions and beat annotations for Happiness Comes](./img/Happiness Comes_spec.png)
+![Spectrogram, beat predictions and beat annotations for Happiness Comes](./img/Happingess_Comes_spec.png)
 
 ![Periodogram for Happiness Comes](./img/Happiness_Comes_period.png)
 
