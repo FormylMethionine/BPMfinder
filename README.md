@@ -61,7 +61,18 @@ The dataset was split between:
 
 ## Usage
 
-Incoming
+Use `python bpm.py /path/to/your/file.ogg` or see the jupyter notebook
+demo.ipynb
+
+### Building the dataset
+
+Put the stepmania packs of your choice in a directory `/dataset_ddr/packs` and
+run the `build_dataset.sh` script.
+
+### Training
+
+Edit the parameters in `train_model.py` as you wish and run 
+`python train_model.py`
 
 ## Results
 
