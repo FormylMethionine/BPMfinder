@@ -7,13 +7,18 @@ import pickle as pkl
 import json
 from scipy import signal
 import numpy as np
+import sys
 
 model = BeatCNN()
 
-path = "./test_songs/chiru chiru.ogg"
+path = sys.argv[1]
 audio = analyze(path)
 model(audio)  # just to initialize weights, awkward and slow
 model.load("./weights/600_16.wgh")
+
+#path = "./test_songs/Land of the Rising Sun"
+#audio = pkl.load(open("./test_songs/Land of the Rising Sun.pkl", "rb"))
+#annot = json.load(open("./test_songs/Land of the Rising Sun.bpm", "r"))
 
 pred = model(audio).numpy().astype('float64')[:, 0]
 f, Pxx = signal.periodogram(pred)
@@ -23,13 +28,14 @@ pks = signal.find_peaks(Pxx)[0]
 pks = [f[pks] for pks in sorted(pks, key=lambda x: Pxx[x], reverse=True)
        if 50 <= f[pks] <= 500]
 bpm = pks[0]
-while not bpm <= 200:
+while not int(bpm) <= 200:
     bpm /= 2
-print(f"Predicted BPM: {bpm}")
+print(f"Predicted BPM: {int(bpm)}")
+print(audio.shape)
 
 f1, ax1 = plt.subplots()
 ax1.plot(f, Pxx)
-ax1.set_xlim(50, 250)
+ax1.set_xlim(50, 500)
 ax1.set_ylim(0, .1)
 ax1.set_title(f"Periodogram of {path.split('/')[-1]}")
 ax1.set_xlabel("BPMs")
@@ -54,6 +60,7 @@ ax3.set_ylabel('Predicted probability of presence of a beat',
 ax3.tick_params('y', labelcolor='red')
 
 #ax4 = ax2.twinx()
-#ax4.plot(bpm[4000:6000], color='orange', alpha=.5)
+#ax4.plot(annot[2000:4000], color='orange', alpha=.5)
+#ax4.axis('off')
 
 plt.show()
