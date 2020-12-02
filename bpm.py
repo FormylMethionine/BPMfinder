@@ -11,14 +11,14 @@ import sys
 
 model = BeatCNN()
 
+#path = "./test_songs/Anti the Holic"
+#audio = pkl.load(open("./test_songs/Anti the Holic.pkl", "rb"))
+#annot = json.load(open("./test_songs/Anti the Holic.bpm", "r"))
+
 path = sys.argv[1]
 audio = analyze(path)
-model(audio)  # just to initialize weights, awkward and slow
+#model(audio[:100])  # just to initialize weights, awkward and slow 
 model.load("./weights/600_16.wgh")
-
-#path = "./test_songs/Land of the Rising Sun"
-#audio = pkl.load(open("./test_songs/Land of the Rising Sun.pkl", "rb"))
-#annot = json.load(open("./test_songs/Land of the Rising Sun.bpm", "r"))
 
 pred = model(audio).numpy().astype('float64')[:, 0]
 f, Pxx = signal.periodogram(pred)

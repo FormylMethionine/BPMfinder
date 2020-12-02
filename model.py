@@ -11,16 +11,26 @@ class BeatCNN(tf.Module):
         super().__init__(**kwargs)
         self.layers = [layers.Conv2D(10, (7, 3), activation='relu',
                                      input_shape=(15, 80, 3),
-                                     data_format='channels_last'),
+                                     data_format='channels_last',
+                                     kernel_initializer='glorot_uniform',
+                                     bias_initializer='zeros'),
                        layers.MaxPool2D(pool_size=(1, 3), strides=3),
-                       layers.Conv2D(20, (3, 3), activation='relu'),
+                       layers.Conv2D(20, (3, 3), activation='relu',
+                                     kernel_initializer='glorot_uniform',
+                                     bias_initializer='zeros'),
                        layers.MaxPool2D(pool_size=(1, 3), strides=3),
                        layers.Flatten(),
-                       layers.Dense(256, activation='relu'),
+                       layers.Dense(256, activation='relu',
+                                    kernel_initializer='glorot_uniform',
+                                    bias_initializer='zeros'),
                        layers.Dropout(.5),
-                       layers.Dense(128, activation='relu'),
+                       layers.Dense(128, activation='relu',
+                                    kernel_initializer='glorot_uniform',
+                                    bias_initializer='zeros'),
                        layers.Dropout(.5),
-                       layers.Dense(1, activation='sigmoid'),
+                       layers.Dense(1, activation='sigmoid',
+                                    kernel_initializer='glorot_uniform',
+                                    bias_initializer='zeros'),
                        layers.Dropout(.5)]
 
     def compile(self, loss, opt):
@@ -31,7 +41,7 @@ class BeatCNN(tf.Module):
         ret = []
         for i in range(7, len(song) - 8):
             ret.append(song[i-7:i+8])
-        ret = np.array(ret)
+        ret = np.array(ret, dtype=np.float32)
         return tf.Variable(ret)
 
     def __call__(self, inputs):
@@ -118,6 +128,8 @@ class BeatCNN(tf.Module):
         return ret
 
     def set_weights(self, W):
+        rand = np.random.rand(100, 80, 3)
+        self.__call__(rand)
         for layer, w in zip(self.layers, W):
             layer.set_weights(w)
 
