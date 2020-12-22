@@ -40,8 +40,7 @@ def metadata_sm(path):
 
 def parse_bpm(bpm, dur):
     bpm = bpm.split(',')
-    for i in bpm:
-        bpm[bpm.index(i)] = i.split('=')
+    bpm = [i.split('=') for i in bpm]
     ret = []
     j = 0
     for i in range(0, len(bpm)):
