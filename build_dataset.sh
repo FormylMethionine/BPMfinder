@@ -1,4 +1,5 @@
 #!/bin/bash
+# Creating the datasets from Stepmania files
 
 OIFS="$IFS"
 IFS=$'\n'

@@ -1,4 +1,5 @@
 #/bin/bash
+# Creates an index of files in a directory
 OIFS="$IFS"
 IFS=$'\n'
 
