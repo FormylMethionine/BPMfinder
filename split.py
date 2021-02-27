@@ -1,3 +1,4 @@
+# misc script for moving files to train, test and val datasets
 import os
 import shutil
 import numpy as np

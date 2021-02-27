@@ -6,8 +6,10 @@ from tensorflow.keras import layers
 
 
 class BeatCNN(tf.Module):
+    # Model for predicting if a frame is a beat or not
 
     def __init__(self, name=None, **kwargs):
+        # Defining the model
         super().__init__(**kwargs)
         self.layers = [layers.Conv2D(10, (7, 3), activation='relu',
                                      input_shape=(15, 80, 3),
@@ -34,10 +36,13 @@ class BeatCNN(tf.Module):
                        layers.Dropout(.5)]
 
     def compile(self, loss, opt):
+        # Adding a loss function and an optimizer to the model
         self.loss = loss
         self.opt = opt
 
     def convert(self, song):
+        # transforms a song to a (3D) tensor
+        # that can be used by the model
         ret = []
         for i in range(7, len(song) - 8):
             ret.append(song[i-7:i+8])
@@ -51,6 +56,7 @@ class BeatCNN(tf.Module):
         return inputs
 
     def train(self, x, y):
+        # returns gradient and loss for a (converted) song
         y = tf.constant(y[7:-8])
         with tf.GradientTape() as t:
             current_loss = self.loss(y, self.__call__(x))
@@ -77,11 +83,11 @@ class BeatCNN(tf.Module):
 
         for epoch in range(epochs):
 
-            # Training
+            # Training on a batch
             train_loss = 0
             np.random.shuffle(index_train)
             for i, name in enumerate(index_train[:batch_size]):
-                # training
+                # getting gradient for an element of the batch
                 x = pkl.load(open(f"{train_dir}/{name}.pkl", "rb"))
                 y = json.load(open(f"{train_dir}/{name}.bpm", "r"))
                 curr_grad, curr_train_loss = self.train(x, y)
@@ -89,7 +95,7 @@ class BeatCNN(tf.Module):
                 if i == 0:
                     grad = curr_grad
                 else:
-                    grad += curr_grad
+                    grad += curr_grad  # Averaging gradient on the batch
                 print(f"epoch: {epoch+1}/{epochs}\t" +
                       f"training on: {name}\t({i+1}/{batch_size})")
             grad = (tf.math.divide(dvar, batch_size) for dvar in grad)
@@ -122,21 +128,27 @@ class BeatCNN(tf.Module):
         return val_loss_ret, train_loss_ret
 
     def get_weights(self):
+        # Extracting sets from the model
         ret = []
         for layer in self.layers:
             ret.append(layer.get_weights())
         return ret
 
     def set_weights(self, W):
+        # Setting weights from a list of weights
+        # Calls the model on random data to initialize weights
+        # A bit awkward, but not too slow
         rand = np.random.rand(100, 80, 3)
         self.__call__(rand)
         for layer, w in zip(self.layers, W):
             layer.set_weights(w)
 
     def save(self, path):
+        # Saving weights in a file
         W = self.get_weights()
         pkl.dump(W, open(path, "wb"))
 
     def load(self, path):
+        # Loading weights from a file
         W = pkl.load(open(path, "rb"))
         self.set_weights(W)

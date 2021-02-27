@@ -1,3 +1,4 @@
+# Parsing sm files
 import os
 import json
 import numpy as np
@@ -8,6 +9,7 @@ from math import ceil
 
 
 def metadata_sm(path):
+    # Getting the metadata
     keys = {"#TITLE",
             "#SUBTITLE",
             "#ARTIST",
@@ -39,6 +41,8 @@ def metadata_sm(path):
 
 
 def parse_bpm(bpm, dur):
+    # Transforming the bpm metadata provided by the file
+    # into a list of bpm values: one value for each beat of the song
     bpm = bpm.split(',')
     bpm = [i.split('=') for i in bpm]
     ret = []
@@ -56,6 +60,7 @@ def parse_bpm(bpm, dur):
 
 
 def beats(metadata, bpm, dur):
+    # transforming the parsed bpm into a time value for each beat
     beats = []
     time = float(metadata["#OFFSET"]) * 1000
     beat = 0
@@ -70,6 +75,7 @@ def beats(metadata, bpm, dur):
 
 
 def vectorize(beats, audio, time):
+    # transforming the time values into frame informations:
     ret = np.zeros(len(audio))
     pos_percent = [i/(time*1000) for i in beats if i >= 0]
     for i in pos_percent:
@@ -79,6 +85,7 @@ def vectorize(beats, audio, time):
 
 
 def parse(f):
+    # Totally parses a file
     path = "./dataset_ddr/stepcharts/" + f
     metadata = metadata_sm(path)
     metadata["#MUSIC"] = metadata["#MUSIC"].split('.')[0] + ".ogg"
@@ -98,6 +105,7 @@ def parse(f):
 
 
 if __name__ == "__main__":
+    # Parsing all the stepmania files in the stepcharts directory
     files = os.listdir("./dataset_ddr/stepcharts")
     for i, f in enumerate(files):
         print(f"Converting '{f}\t{i+1}/{len(files)}'")

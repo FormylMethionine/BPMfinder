@@ -1,12 +1,11 @@
 import essentia.standard
 import essentia
 import numpy as np
-import pickle as pkl
-import os
-import multiprocessing as mp
 
 
 def create_analyzers():
+    # From chrisdonahue/ddc
+    # create the analyzers used by analyze function
     nffts = [1024, 2048, 4096]
     samplerate = 44100
     analyzers = []
@@ -22,7 +21,27 @@ def create_analyzers():
     return analyzers
 
 
+def analyze(path):
+    # returns the spectograms of a song
+    samplerate = 44100
+    loader = essentia.standard.MonoLoader(filename=path, sampleRate=samplerate)
+    audiodata = loader()
+    ret = []
+    analyzers = create_analyzers()
+    for nfft, win, spec, mel in analyzers:
+        feats = []
+        for frame in essentia.standard.FrameGenerator(audiodata, nfft, 512):
+            frame_feats = mel(spec(win(frame)))
+            feats.append(frame_feats)
+        ret.append(feats)
+    ret = np.transpose(np.stack(ret), (1, 2, 0))
+    ret = np.log(ret + 1e-16)
+    return ret
+
+
 def analyze_with_time(path):
+    # Like analyze but also returns duration of song
+    # will one day be integrated into analyze
     samplerate = 44100
     loader = essentia.standard.MonoLoader(filename=path, sampleRate=samplerate)
     audiodata = loader()
@@ -40,24 +59,8 @@ def analyze_with_time(path):
     return ret, time
 
 
-def analyze(path):
-    samplerate = 44100
-    loader = essentia.standard.MonoLoader(filename=path, sampleRate=samplerate)
-    audiodata = loader()
-    ret = []
-    analyzers = create_analyzers()
-    for nfft, win, spec, mel in analyzers:
-        feats = []
-        for frame in essentia.standard.FrameGenerator(audiodata, nfft, 512):
-            frame_feats = mel(spec(win(frame)))
-            feats.append(frame_feats)
-        ret.append(feats)
-    ret = np.transpose(np.stack(ret), (1, 2, 0))
-    ret = np.log(ret + 1e-16)
-    return ret
-
-
 def time(path):
+    # returns the duration of a song
     samplerate = 44100
     loader = essentia.standard.MonoLoader(filename=path, sampleRate=samplerate)
     audiodata = loader()

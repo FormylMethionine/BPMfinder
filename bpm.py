@@ -9,31 +9,38 @@ from scipy import signal
 import numpy as np
 import sys
 
-model = BeatCNN()
+# ***
+# Getting the predictions
+# ***
 
-#path = "./test_songs/Anti the Holic"
-#audio = pkl.load(open("./test_songs/Anti the Holic.pkl", "rb"))
-#annot = json.load(open("./test_songs/Anti the Holic.bpm", "r"))
+model = BeatCNN()
 
 path = sys.argv[1]
 audio = analyze(path)
-#model(audio[:100])  # just to initialize weights, awkward and slow
 model.load("./weights/2000_16.wgh")
 
 pred = model(audio).numpy().astype('float64')[:, 0]
 f, Pxx = signal.periodogram(pred)
 f = 5172*f
 
-pks = signal.find_peaks(Pxx)[0]
+# ***
+# Finding the bpm
+# ***
+
+pks = signal.find_peaks(Pxx)[0]  # finding peaks
 pks = [f[pks] for pks in sorted(pks, key=lambda x: Pxx[x], reverse=True)
        if 50 <= f[pks] <= 500][:10]
 bpm = pks[0]
 i = 1
-for i in range(1, 5):
+for i in range(1, 5):  # Converting the highest peak to a bpm
     new_bpm = bpm/i
     if int(new_bpm) <= 200 and round(new_bpm) in list(map(round, pks)):
         break
 print(f"Predicted BPM: {round(new_bpm)}")
+
+# ***
+# Plots
+# ***
 
 f1, ax1 = plt.subplots()
 ax1.plot(f, Pxx)
